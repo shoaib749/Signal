@@ -18,7 +18,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-
+//user full iamge picker :https://stackoverflow.com/questions/70567714/cannot-able-to-upload-user-profile-react-native-firebase
 
 const RegisterScreen = ({ navigation }) => {
     const [name, setName] = useState("");
@@ -32,30 +32,42 @@ const RegisterScreen = ({ navigation }) => {
         });
     }, [navigation]);
     const register = () => {
-        // auth.createUserWithEmailAndPassword(email, password)
-        //     // .then(authUser => {
-        //     //     authUser.user.updateProfile({
-        //     //         displayName: name,
-        //     //         photoURL:
-        //     //         imageUrl || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTGrC-6oA9sg1_xEJRcJTACfGOnNFHsAsXn8FpEZSA&s"
-        //     //     });
-        //     // })
-        //     .catch((error) => alert(error.message));
-        
+
+        // createUserWithEmailAndPassword(auth, email, password)
+        //     .then((userCredential) => {
+        //         // Signed in 
+        //         const user = userCredential.user;
+        //         console.log(user);
+        //         user.updateProfile({
+        //             displayName: name,
+        //             photoURL: imageUrl || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKS9W8AecB8TRNh4yKf1QGSXZXp3_lZYeHlel9tG3kzw&usqp=CAU&ec=48665701"
+        //         })
+        //     })
+        //     .catch((error) => {
+        //         const errorCode = error.code;
+        //         const errorMessage = error.message;
+        //         console.log(errorMessage)
+        //         Alert.alert("Error", error.message)
+        //     });
         createUserWithEmailAndPassword(auth, email, password)
             .then((userCredential) => {
-                // Signed in 
                 const user = userCredential.user;
-                console.log(user)
+                console.log(user);
+                user.updateProfile({
+                    displayName: name,
+                    photoURL: imageUrl || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKS9W8AecB8TRNh4yKf1QGSXZXp3_lZYeHlel9tG3kzw&usqp=CAU&ec=48665701"
+                }).then(() => {
+                    console.log("Profile updated successfully.");
+                }).catch((error) => {
+                    console.log("Error updating profile:", error.message);
+                });
             })
             .catch((error) => {
                 const errorCode = error.code;
                 const errorMessage = error.message;
                 console.log(errorMessage)
-                console.log(errorCode)
-                // ..
+                Alert.alert("Error", error.message)
             });
-            // console.log("inside register function")
 
     }
     return (
@@ -67,23 +79,23 @@ const RegisterScreen = ({ navigation }) => {
                     autoFocus
                     type="text"
                     value={name}
-                    onChange={(text) => setName(text)} />
+                    onChangeText={text => setName(text)} />
 
                 <Input placeholder="Email"
-                    type="text"
+                    type="email"
                     value={email}
-                    onChange={(text) => setEmail(text)} />
+                    onChangeText={text => setEmail(text)} />
 
                 <Input placeholder="Password"
                     type="text"
                     value={password}
                     secureTextEntry
-                    onChange={(text) => setPassword(text)} />
+                    onChangeText={text => setPassword(text)} />
 
                 <Input placeholder="Profile Picture Url"
                     type="text"
                     value={imageUrl}
-                    onChange={(text) => setImageUrl(text)}
+                    onChangeText={text => setImageUrl(text)}
                     onSubmitEditing={register} />
 
             </View>
