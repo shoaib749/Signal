@@ -87,8 +87,8 @@ const HomeScreen = ({ navigation }) => {
     })
   }, [navigation]);
 
-  const enterChat=(id,chatName)=>{
-    navigation.navigate("Chat",{
+  const enterChat = (id, chatName) => {
+    navigation.navigate("Chat", {
       id,
       chatName,
     });
@@ -96,10 +96,9 @@ const HomeScreen = ({ navigation }) => {
   return (
     <SafeAreaView>
       <ScrollView>
-        {chats.map(({id,data:{chatName}})=>(
-          <CustomListItem key={id} id={id} chatName={chatName} enterChat={enterChat}/>
+        {chats.map(({ id, data: { chatName } }) => (
+          <CustomListItem key={id} id={id} chatName={chatName} enterChat={enterChat} />
         ))}
-        <CustomListItem />
       </ScrollView>
     </SafeAreaView>
   )

@@ -5,7 +5,7 @@ import { Input, Text, Button } from 'react-native-elements';
 // import { auth } from '../firebase_connect';
 import { Alert } from 'react-native';
 import { initializeApp } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAJ-TrNsUpAt63TYDeCvRTCyzqwL_uz3YM",
@@ -33,27 +33,11 @@ const RegisterScreen = ({ navigation }) => {
     }, [navigation]);
     const register = () => {
 
-        // createUserWithEmailAndPassword(auth, email, password)
-        //     .then((userCredential) => {
-        //         // Signed in 
-        //         const user = userCredential.user;
-        //         console.log(user);
-        //         user.updateProfile({
-        //             displayName: name,
-        //             photoURL: imageUrl || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKS9W8AecB8TRNh4yKf1QGSXZXp3_lZYeHlel9tG3kzw&usqp=CAU&ec=48665701"
-        //         })
-        //     })
-        //     .catch((error) => {
-        //         const errorCode = error.code;
-        //         const errorMessage = error.message;
-        //         console.log(errorMessage)
-        //         Alert.alert("Error", error.message)
-        //     });
         createUserWithEmailAndPassword(auth, email, password)
             .then((userCredential) => {
                 const user = userCredential.user;
                 console.log(user);
-                user.updateProfile({
+                updateProfile(user, {
                     displayName: name,
                     photoURL: imageUrl || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKS9W8AecB8TRNh4yKf1QGSXZXp3_lZYeHlel9tG3kzw&usqp=CAU&ec=48665701"
                 }).then(() => {
@@ -65,8 +49,8 @@ const RegisterScreen = ({ navigation }) => {
             .catch((error) => {
                 const errorCode = error.code;
                 const errorMessage = error.message;
-                console.log(errorMessage)
-                Alert.alert("Error", error.message)
+                console.log(errorMessage);
+                Alert.alert("Error", error.message);
             });
 
     }

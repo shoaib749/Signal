@@ -1,8 +1,6 @@
 import { StyleSheet, Text, View, TextInput } from 'react-native'
-import React, { useLayoutEffect, useState } from 'react'
+import React, { useLayoutEffect, useState, useEffect } from 'react'
 import { Avatar } from 'react-native-elements'
-import firebase from 'firebase/compat/app';
-import 'firebase/firestore';
 import { TouchableOpacity } from 'react-native'
 import { AntDesign, FontAwesome, Ionicons } from "@expo/vector-icons"
 import { SafeAreaView } from 'react-native'
@@ -13,10 +11,8 @@ import { ScrollView } from 'react-native'
 import { Keyboard } from 'react-native'
 import { TouchableWithoutFeedback } from 'react-native'
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from "firebase/firestore";
-import { collection, getDocs, onSnapshot } from "firebase/firestore";
-import { getAuth,} from "firebase/auth";
-
+import { getFirestore, collection, doc, addDoc, serverTimestamp, orderBy, onSnapshot, query, collectionGroup } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 const firebaseConfig = {
     apiKey: "AIzaSyAJ-TrNsUpAt63TYDeCvRTCyzqwL_uz3YM",
     authDomain: "signal-98661.firebaseapp.com",
@@ -25,11 +21,15 @@ const firebaseConfig = {
     messagingSenderId: "664202538785",
     appId: "1:664202538785:web:3090796665296482839860"
 };
-const app = firebase.initializeApp(firebaseConfig)
+const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
 const Chat = ({ navigation, route }) => {
     const [input, setInnput] = useState('');
+    const [message, setMessages] = useState([]);
+
+
     useLayoutEffect(() => {
         navigation.setOptions({
             title: "Chat",
@@ -40,7 +40,7 @@ const Chat = ({ navigation, route }) => {
                     alignItem: "center",
                 }}>
                     <Avatar rounded source={{
-                        uri: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKS9W8AecB8TRNh4yKf1QGSXZXp3_lZYeHlel9tG3kzw&usqp=CAU&ec=48665701"
+                        uri: message[0]?.data.photoURL ||"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKS9W8AecB8TRNh4yKf1QGSXZXp3_lZYeHlel9tG3kzw&usqp=CAU&ec=48665701"
                     }}
                     />
                     <Text style={{ color: "white", marginLeft: 10, fontWeight: "700" }}>{route.params.chatName}</Text>
@@ -67,20 +67,49 @@ const Chat = ({ navigation, route }) => {
                 </View>
             )
         })
-    }, [navigation])
+    }, [navigation,message])
     const sendMessage = () => {
         Keyboard.dismiss();
         console.log("inside")
-        db.collection('chats').doc(route.params.id).collection('message').add({
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            message: input,
-            displayName: auth.currentUser.displayName,
-            email: auth.currentUser.email,
-            photoURL: auth.currentUser.photoURL
-        })
 
+        async function addMessageToChat(input, chatId) {
+            try {
+                const messageRef = collection(doc(db, "chats", chatId), "message");
+                const newMessage = {
+                    timestamp: serverTimestamp(),
+                    message: input,
+                    displayName: auth.currentUser.displayName,
+                    email: auth.currentUser.email,
+                    photoURL: auth.currentUser.photoURL
+                };
+                await addDoc(messageRef, newMessage);
+                console.log("Message added successfully");
+            } catch (error) {
+                console.error("Error adding message: ", error);
+            }
+        }
+        addMessageToChat(input, route.params.id);
         setInnput("")
     };
+
+    useEffect(() => {
+        const q = query(
+            collection(db, `chats/${route.params.id}/message`),
+            orderBy('timestamp')
+        );
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const messages = querySnapshot.docs.map((doc) => ({
+                id: doc.id,
+                data: doc.data(),
+            }));
+            setMessages(messages);
+            console.log(route.params.id);
+            console.log(messages)
+        });
+        return unsubscribe;
+    }, [route.params.id])
+    // console.log("messages value");
+    // console.log(message);
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
             <StatusBar style="light" />
@@ -90,8 +119,54 @@ const Chat = ({ navigation, route }) => {
                 keyboardVerticalOffset={90}>
                 <TouchableWithoutFeedback>
                     <>
-                        <ScrollView>
-                            {/* chats goes here */}
+                        <ScrollView containerStyle={{ paddingTop: 15 }}>
+                            {message.map(({ id, data }) => (
+                                data.email === auth.currentUser.email ? (
+                                    <View key={id} style={styles.reciver}>
+                                        <Avatar
+                                            position="absolute"
+                                            containerStyle={{
+                                                position: "absolute",
+                                                bottom: -15,
+                                                right: -5
+                                            }}
+                                            rounded
+                                            size={30}
+                                            bottom={-15}
+                                            right={-5}
+                                            source={{
+                                                uri: data.photoURL
+                                            }} />
+                                        <Text style={styles.recieverText}>
+                                            {data.message}
+                                        </Text>
+                                    </View>
+                                ) : (
+                                    <View style={styles.sender}>
+                                        <Avatar
+                                            position="absolute"
+                                            containerStyle={{
+                                                position: "absolute",
+                                                bottom: -15,
+                                                left: -5
+                                            }}
+                                            bottom={-15}
+                                            left={-5}
+                                            rounded
+                                            size={30}
+                                            source={{
+                                                uri: data.photoURL
+                                            }}
+                                        />
+                                        <Text style={styles.senderText}>
+                                            {data.message}
+                                        </Text>
+                                        <Text style={styles.senderName}>
+                                            {data.displayName}
+                                        </Text>
+                                    </View>
+                                )
+                            ))}
                         </ScrollView>
                         <View style={styles.fotter}>
                             {/* fotter */}
@@ -126,7 +201,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         width: "100%",
-        padding: 15,
+        padding: 10,
     },
     textInput: {
         bottom: 0,
@@ -138,4 +213,41 @@ const styles = StyleSheet.create({
         color: "grey",
         borderRadius: 30,
     },
+    recieverText: {
+        color: "black",
+        fontWeight: "500",
+        marginLeft: 10,
+
+    },
+    senderText: {
+        color: "white",
+        fontWeight: "500",
+        marginLeft: 10,
+        marginBottom: 15
+    },
+    reciver: {
+        padding: 15,
+        backgroundColor: "#ECECEC",
+        alignSelf: "flex-end",
+        borderRadius: 20,
+        marginRight: 15,
+        marginBottom: 20,
+        maxWidth: "80%",
+        position: "relative"
+    },
+    sender: {
+        padding: 15,
+        backgroundColor: "#2B68E6",
+        alignSelf: "flex-start",
+        borderRadius: 20,
+        margin: 15,
+        maxWidth: "80%",
+        position: "relative"
+    },
+    senderName: {
+        left: 10,
+        paddingRight: 10,
+        fontSize: 10,
+        color: "white",
+    }
 })

@@ -9,7 +9,7 @@ const CustomListItem = ({ id, chatName, enterChat }) => {
                 rounded
                 source={{
                     uri:
-                        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKS9W8AecB8TRNh4yKf1QGSXZXp3_lZYeHlel9tG3kzw&usqp=CAU&ec=48665701"
+                        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcScoWK2QOwVc0cBvi4qDVk15ulVrAQ33neBjgTbTr0&s"
                 }}
             />
             <ListItem.Content>
