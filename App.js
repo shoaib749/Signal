@@ -8,6 +8,7 @@ import HomeScreen from './screens/HomeScreen';
 import AddChat from './screens/AddChat';
 import Chat from './screens/Chat';
 
+
 export default function App() {
   const Stack = createStackNavigator();
   const globalScreenOption = {
@@ -17,6 +18,7 @@ export default function App() {
     // headerTitleAlign: "center"
   };
   return (
+
     <NavigationContainer>
       <Stack.Navigator screenOptions={globalScreenOption}>
         <Stack.Screen name='Login' component={LoginScreen} />
@@ -26,6 +28,7 @@ export default function App() {
         <Stack.Screen name='Chat' component={Chat} />
       </Stack.Navigator>
     </NavigationContainer>
+
   );
 }
 

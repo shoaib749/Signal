@@ -3,8 +3,8 @@ import React, { useEffect, useState } from 'react'
 import { Button, Input, Image } from "react-native-elements"
 import { StatusBar } from 'expo-status-bar'
 
-
 const LoginScreen = ({ navigation }) => {
+    
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     // useEffect(() => {
@@ -33,7 +33,7 @@ const LoginScreen = ({ navigation }) => {
                     return res.json();
                 } else if (res.status == 401) {
                     alert("User does not exist");
-                } else if (res.status == 500) { 
+                } else if (res.status == 500) {
                     alert("Server Error")
                 } else if (res.status == 400) {
                     alert("Enter correct password!");
@@ -45,10 +45,11 @@ const LoginScreen = ({ navigation }) => {
                 console.log(data.name);
                 console.log(data.message);
                 console.log(data.token);
-                navigation.replace('HomeScreen',{
-                    id : data.id,
-                    name : data.name,
-                    imageurl : data.imageurl,
+                navigation.replace('HomeScreen', {
+                    id: data.id,
+                    name: data.name,
+                    imageurl: data.imageurl,
+                    email: email,
                 })
                 // navigation.replace("HomeScreen");
             })

@@ -10,26 +10,11 @@ import { Platform } from 'react-native'
 import { ScrollView } from 'react-native'
 import { Keyboard } from 'react-native'
 import { TouchableWithoutFeedback } from 'react-native'
-// import { initializeApp } from 'firebase/app';
-// import { getFirestore, collection, doc, addDoc, serverTimestamp, orderBy, onSnapshot, query, collectionGroup } from "firebase/firestore";
-// import { getAuth } from "firebase/auth";
-// const firebaseConfig = {
-//     apiKey: "AIzaSyDJ5FgjXvkYSx3DfX_D9pfvyWGi0wvlIHU",
-//     authDomain: "chat-810fd.firebaseapp.com",
-//     projectId: "chat-810fd",
-//     storageBucket: "chat-810fd.appspot.com",
-//     messagingSenderId: "605059293180",
-//     appId: "1:605059293180:web:5f475d409b10f22f5c1c79"
-//   };
-// const app = initializeApp(firebaseConfig);
-// const auth = getAuth(app);
-// const db = getFirestore(app);
 
 const Chat = ({ navigation, route }) => {
     const [input, setInnput] = useState('');
     const [message, setMessages] = useState([]);
-    const { self } = route.params;
-
+    const { id, senderid, email } = route.params;
     useLayoutEffect(() => {
         navigation.setOptions({
             title: "Chat",
@@ -73,6 +58,7 @@ const Chat = ({ navigation, route }) => {
     const sendMessage = () => {
         Keyboard.dismiss();
         console.log("inside")
+        console.log(senderid)
         async function addMessageToChat(input, chatId, senderid) {
             // try {
             //     const messageRef = collection(doc(db, "chats", chatId), "message");
@@ -90,7 +76,7 @@ const Chat = ({ navigation, route }) => {
             // }
             const currentDate = new Date();
             const timestamp = currentDate.getTime();
-            console.log("Sender id", senderid)
+            console.log("inside fetch senderId", senderid)
             console.log("genrating timestamp", timestamp)
             fetch("http://10.0.10.221:5000/user/addMessage", {
                 method: "POST",
@@ -106,7 +92,7 @@ const Chat = ({ navigation, route }) => {
                 })
             })
         }
-        addMessageToChat(input, route.params.id, self);
+        addMessageToChat(input, id, senderid);
         setInnput("")
     };
 
@@ -125,7 +111,41 @@ const Chat = ({ navigation, route }) => {
         //     console.log(messages)
         // });
         // return unsubscribe;
-    }, [route.params.id])
+        async function fecth(id) {
+            const unsubscribe = fetch("http://10.0.10.221:5000/user/showMessage", {
+                method: "POST",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    chatid: id,
+                })
+            }).then((res) => {
+                if (res.status == 200) {
+                    return res.json();
+                }
+                else {
+                    alert("error");
+                }
+            }).then((data) => {
+                console.log(data.messages);
+                setMessages(data.messages.map((doc) => ({
+                    messageid: doc.messageid,
+                    message: doc.message,
+                    imageUrl: doc.imageurl,
+                    name: doc.name,
+                    messageEmail: doc.email,
+                    senderid: doc.id,
+                })
+                )
+                )
+
+            })
+            return unsubscribe;
+        }
+        fecth(id)
+    }, [id])
     // console.log("messages value");
     // console.log(message);
     return (
@@ -138,9 +158,9 @@ const Chat = ({ navigation, route }) => {
                 <TouchableWithoutFeedback>
                     <>
                         <ScrollView containerStyle={{ paddingTop: 15 }}>
-                            {message.map(({ id, data }) => (
-                                data.email === auth.currentUser.email ? (
-                                    <View key={id} style={styles.reciver}>
+                            {message.map(({ messageid, message, imageUrl, name, messageEmail, senderid }) => (
+                                messageEmail === email ? (
+                                    <View key={messageid} style={styles.reciver}>
                                         <Avatar
                                             position="absolute"
                                             containerStyle={{
@@ -153,10 +173,10 @@ const Chat = ({ navigation, route }) => {
                                             bottom={-15}
                                             right={-5}
                                             source={{
-                                                uri: data.photoURL
+                                                uri: imageUrl
                                             }} />
                                         <Text style={styles.recieverText}>
-                                            {data.message}
+                                            {message}
                                         </Text>
                                     </View>
                                 ) : (
@@ -173,14 +193,14 @@ const Chat = ({ navigation, route }) => {
                                             rounded
                                             size={30}
                                             source={{
-                                                uri: data.photoURL
+                                                uri: imageUrl
                                             }}
                                         />
                                         <Text style={styles.senderText}>
-                                            {data.message}
+                                            {message}
                                         </Text>
                                         <Text style={styles.senderName}>
-                                            {data.displayName}
+                                            {name}
                                         </Text>
                                     </View>
                                 )

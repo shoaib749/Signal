@@ -7,8 +7,10 @@ import { AntDesign, SimpleLineIcons } from "@expo/vector-icons"
 
 
 const HomeScreen = ({ navigation, route }) => {
-  const { id, name, imageurl } = route.params;
+  const { id, name, imageurl, email } = route.params;
   console.log("name", name);
+  const senderid = id;
+  console.log("sender id", senderid);
   console.log("back")
   const [chats, setChats] = useState([]);
   const signOut = () => {
@@ -59,8 +61,7 @@ const HomeScreen = ({ navigation, route }) => {
             id: doc.chatid,
             chatName: doc.chatname,
             chaturl: doc.chaturl,
-            owner: doc.id,
-            self: id,
+            senderid: doc.id,
           })))
         })
       return unsubscribe;
@@ -106,19 +107,21 @@ const HomeScreen = ({ navigation, route }) => {
     })
   }, [navigation]);
 
-  const enterChat = (id, chatName, chaturl, self) => {
+  const enterChat = (id, chatName, chaturl, senderid, email) => {
+    console.log("bhai bhai:", senderid);
     navigation.navigate("Chat", {
       id,
       chatName,
       chaturl,
-      self,
+      senderid,
+      email
     });
   };
   return (
     <SafeAreaView>
       <ScrollView>
-        {chats.map(({ id, chatName, chaturl, self }) => (
-          <CustomListItem key={id} id={id} chatName={chatName} chaturl={chaturl} self={self} enterChat={enterChat} />
+        {chats.map(({ id, chatName, chaturl, senderid, email }) => (
+          <CustomListItem key={id} id={id} chatName={chatName} chaturl={chaturl} senderid={senderid} email={email} enterChat={enterChat} />
         ))}
       </ScrollView>
     </SafeAreaView>
