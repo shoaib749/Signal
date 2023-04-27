@@ -10,25 +10,25 @@ import { Platform } from 'react-native'
 import { ScrollView } from 'react-native'
 import { Keyboard } from 'react-native'
 import { TouchableWithoutFeedback } from 'react-native'
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, doc, addDoc, serverTimestamp, orderBy, onSnapshot, query, collectionGroup } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
-const firebaseConfig = {
-    apiKey: "AIzaSyAJ-TrNsUpAt63TYDeCvRTCyzqwL_uz3YM",
-    authDomain: "signal-98661.firebaseapp.com",
-    projectId: "signal-98661",
-    storageBucket: "signal-98661.appspot.com",
-    messagingSenderId: "664202538785",
-    appId: "1:664202538785:web:3090796665296482839860"
-};
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+// import { initializeApp } from 'firebase/app';
+// import { getFirestore, collection, doc, addDoc, serverTimestamp, orderBy, onSnapshot, query, collectionGroup } from "firebase/firestore";
+// import { getAuth } from "firebase/auth";
+// const firebaseConfig = {
+//     apiKey: "AIzaSyDJ5FgjXvkYSx3DfX_D9pfvyWGi0wvlIHU",
+//     authDomain: "chat-810fd.firebaseapp.com",
+//     projectId: "chat-810fd",
+//     storageBucket: "chat-810fd.appspot.com",
+//     messagingSenderId: "605059293180",
+//     appId: "1:605059293180:web:5f475d409b10f22f5c1c79"
+//   };
+// const app = initializeApp(firebaseConfig);
+// const auth = getAuth(app);
+// const db = getFirestore(app);
 
 const Chat = ({ navigation, route }) => {
     const [input, setInnput] = useState('');
     const [message, setMessages] = useState([]);
-
+    const { self } = route.params;
 
     useLayoutEffect(() => {
         navigation.setOptions({
@@ -40,17 +40,18 @@ const Chat = ({ navigation, route }) => {
                     alignItem: "center",
                 }}>
                     <Avatar rounded source={{
-                        uri: message[0]?.data.photoURL ||"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKS9W8AecB8TRNh4yKf1QGSXZXp3_lZYeHlel9tG3kzw&usqp=CAU&ec=48665701"
+                        uri: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKS9W8AecB8TRNh4yKf1QGSXZXp3_lZYeHlel9tG3kzw&usqp=CAU&ec=48665701"
                     }}
+                    //message[0]?.data.photoURL
                     />
                     <Text style={{ color: "white", marginLeft: 10, fontWeight: "700" }}>{route.params.chatName}</Text>
                 </View>
             ),
-            headerLeft: () => (
-                <TouchableOpacity>
-                    <AntDesign name="arrowleft" size={24} color="white" />
-                </TouchableOpacity>
-            ),
+            // headerLeft: () => (
+            //     <TouchableOpacity>
+            //         <AntDesign name="arrowleft" size={24} color="white" />
+            //     </TouchableOpacity>
+            // ),
             headerRight: () => (
                 <View style={{
                     flexDirection: "row",
@@ -67,46 +68,63 @@ const Chat = ({ navigation, route }) => {
                 </View>
             )
         })
-    }, [navigation,message])
+    }, [navigation])
+
     const sendMessage = () => {
         Keyboard.dismiss();
         console.log("inside")
-
-        async function addMessageToChat(input, chatId) {
-            try {
-                const messageRef = collection(doc(db, "chats", chatId), "message");
-                const newMessage = {
-                    timestamp: serverTimestamp(),
+        async function addMessageToChat(input, chatId, senderid) {
+            // try {
+            //     const messageRef = collection(doc(db, "chats", chatId), "message");
+            //     const newMessage = {
+            //         timestamp: serverTimestamp(),
+            //         message: input,
+            //         displayName: auth.currentUser.displayName,
+            //         email: auth.currentUser.email,
+            //         photoURL: auth.currentUser.photoURL
+            //     };
+            //     await addDoc(messageRef, newMessage);
+            //     console.log("Message added successfully");
+            // } catch (error) {
+            //     console.error("Error adding message: ", error);
+            // }
+            const currentDate = new Date();
+            const timestamp = currentDate.getTime();
+            console.log("Sender id", senderid)
+            console.log("genrating timestamp", timestamp)
+            fetch("http://10.0.10.221:5000/user/addMessage", {
+                method: "POST",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
                     message: input,
-                    displayName: auth.currentUser.displayName,
-                    email: auth.currentUser.email,
-                    photoURL: auth.currentUser.photoURL
-                };
-                await addDoc(messageRef, newMessage);
-                console.log("Message added successfully");
-            } catch (error) {
-                console.error("Error adding message: ", error);
-            }
+                    chatid: chatId,
+                    senderid: senderid,
+                    timestamp: timestamp,
+                })
+            })
         }
-        addMessageToChat(input, route.params.id);
+        addMessageToChat(input, route.params.id, self);
         setInnput("")
     };
 
     useEffect(() => {
-        const q = query(
-            collection(db, `chats/${route.params.id}/message`),
-            orderBy('timestamp')
-        );
-        const unsubscribe = onSnapshot(q, (querySnapshot) => {
-            const messages = querySnapshot.docs.map((doc) => ({
-                id: doc.id,
-                data: doc.data(),
-            }));
-            setMessages(messages);
-            console.log(route.params.id);
-            console.log(messages)
-        });
-        return unsubscribe;
+        // const q = query(
+        //     collection(db, `chats/${route.params.id}/message`),
+        //     orderBy('timestamp')
+        // );
+        // const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        //     const messages = querySnapshot.docs.map((doc) => ({
+        //         id: doc.id,
+        //         data: doc.data(),
+        //     }));
+        //     setMessages(messages);
+        //     console.log(route.params.id);
+        //     console.log(messages)
+        // });
+        // return unsubscribe;
     }, [route.params.id])
     // console.log("messages value");
     // console.log(message);

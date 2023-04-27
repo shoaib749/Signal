@@ -2,26 +2,13 @@ import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native'
 import React, { useLayoutEffect, useState, useEffect } from 'react'
 import CustomListItem from '../components/CustomListItem'
 import { Avatar } from 'react-native-elements'
-import { initializeApp } from 'firebase/app';
-import { getFirestore } from "firebase/firestore";
-import { collection, getDocs, onSnapshot } from "firebase/firestore";
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { TouchableOpacity } from 'react-native';
 import { AntDesign, SimpleLineIcons } from "@expo/vector-icons"
-const firebaseConfig = {
-  apiKey: "AIzaSyAJ-TrNsUpAt63TYDeCvRTCyzqwL_uz3YM",
-  authDomain: "signal-98661.firebaseapp.com",
-  projectId: "signal-98661",
-  storageBucket: "signal-98661.appspot.com",
-  messagingSenderId: "664202538785",
-  appId: "1:664202538785:web:3090796665296482839860"
-};
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
 
 
-const HomeScreen = ({ navigation }) => {
+const HomeScreen = ({ navigation, route }) => {
+  const { id, name, imageurl } = route.params;
+  console.log("name", name);
   console.log("back")
   const [chats, setChats] = useState([]);
   const signOut = () => {
@@ -30,25 +17,56 @@ const HomeScreen = ({ navigation }) => {
     });
   };
   useEffect(() => {
+    // async function fetchData() {
+    //   const unsubscribe = await onSnapshot(collection(db, "chats"), (snapshot) =>
+    //     setChats(
+    //       snapshot.docs.map((doc) => ({
+    //         id: doc.id,
+    //         data: doc.data(),
+    //       }))
+    //     )
+    //   );
+    //   return unsubscribe;
+    // }
+    // fetchData();
     async function fetchData() {
-      const unsubscribe = await onSnapshot(collection(db, "chats"), (snapshot) =>
-        setChats(
-          snapshot.docs.map((doc) => ({
-            id: doc.id,
-            data: doc.data(),
-          }))
-        )
-      );
+      const unsubscribe = fetch("http://10.0.10.221:5000/user/showChat", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: id,
+        })
+      })
+        .then((res) => {
+          if (res.status == 200) {
+            console.log(res.status);
+            return res.json();
+          } else if (res.status == 401) {
+            alert("d");
+          } else if (res.status == 500) {
+            alert("Server Error")
+          } else if (res.status == 400) {
+            alert("Enter correct password!");
+          }
+        })
+        .then((data) => {
+          console.log(data.message);
+          console.log(data.chats);
+          setChats(data.chats.map((doc) => ({
+            id: doc.chatid,
+            chatName: doc.chatname,
+            chaturl: doc.chaturl,
+            owner: doc.id,
+            self: id,
+          })))
+        })
       return unsubscribe;
     }
     fetchData();
   }, []);
-  // console.log("data from db")
-  // console.log(unsubscribe);
-  // unsubscribe.array.forEach(doc => {
-  //   console.log(id)
-  //   console.log(doc.data())
-  // });
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -63,6 +81,7 @@ const HomeScreen = ({ navigation }) => {
               rounded
               source={{
                 uri:
+                  imageurl ||
                   "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKS9W8AecB8TRNh4yKf1QGSXZXp3_lZYeHlel9tG3kzw&usqp=CAU&ec=48665701"
               }}
             />
@@ -79,7 +98,7 @@ const HomeScreen = ({ navigation }) => {
           <TouchableOpacity activeOpacity={0.5}>
             <AntDesign name="camerao" size={24} color="black" />
           </TouchableOpacity>
-          <TouchableOpacity activeOpacity={0.5} onPress={() => navigation.navigate("AddChat")}>
+          <TouchableOpacity activeOpacity={0.5} onPress={() => navigation.navigate("AddChat", { id: id })}>
             <SimpleLineIcons name="pencil" size={24} color="black" />
           </TouchableOpacity>
         </View>
@@ -87,17 +106,19 @@ const HomeScreen = ({ navigation }) => {
     })
   }, [navigation]);
 
-  const enterChat = (id, chatName) => {
+  const enterChat = (id, chatName, chaturl, self) => {
     navigation.navigate("Chat", {
       id,
       chatName,
+      chaturl,
+      self,
     });
   };
   return (
     <SafeAreaView>
       <ScrollView>
-        {chats.map(({ id, data: { chatName } }) => (
-          <CustomListItem key={id} id={id} chatName={chatName} enterChat={enterChat} />
+        {chats.map(({ id, chatName, chaturl, self }) => (
+          <CustomListItem key={id} id={id} chatName={chatName} chaturl={chaturl} self={self} enterChat={enterChat} />
         ))}
       </ScrollView>
     </SafeAreaView>
