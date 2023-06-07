@@ -1,8 +1,6 @@
 import { KeyboardAvoidingView, StatusBar, StyleSheet, View } from 'react-native'
 import React, { useLayoutEffect, useState } from 'react'
 import { Input, Text, Button } from 'react-native-elements';
-// import { getAuth } from 'firebase/auth';
-// import { auth } from '../firebase_connect';
 import { Alert } from 'react-native';
 import { initializeApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
@@ -12,9 +10,10 @@ const firebaseConfig = {
     authDomain: "signal-98661.firebaseapp.com",
     projectId: "signal-98661",
     storageBucket: "signal-98661.appspot.com",
+    databaseURL: "https://signal-98661-default-rtdb.asia-southeast1.firebasedatabase.app",
     messagingSenderId: "664202538785",
     appId: "1:664202538785:web:3090796665296482839860"
-};
+  };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
@@ -53,6 +52,24 @@ const RegisterScreen = ({ navigation }) => {
                 Alert.alert("Error", error.message);
             });
 
+        // //testing for custom database 
+        // fetch("http://10.0.10.221:5000/user/register",{
+        //     method: "POST",
+        //     headers:{
+        //         Accept : "application/json",
+        //         "Content-Type" : "application/json",
+        //     },
+        //     body : JSON.stringify({
+        //         name : name,
+        //         password : password,
+        //         imageurl: imageUrl,
+        //         email : email,
+        //     })
+        // })
+        // .then((res)=>{
+        //     console.log("This is inside the sucess block");
+        //     navigation.navigate("Login");
+        // })
     }
     return (
         <KeyboardAvoidingView behavior='margin' style={styles.container}>

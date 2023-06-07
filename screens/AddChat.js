@@ -6,26 +6,25 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { collection, addDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-
 const firebaseConfig = {
     apiKey: "AIzaSyAJ-TrNsUpAt63TYDeCvRTCyzqwL_uz3YM",
     authDomain: "signal-98661.firebaseapp.com",
     projectId: "signal-98661",
     storageBucket: "signal-98661.appspot.com",
+    databaseURL: "https://signal-98661-default-rtdb.asia-southeast1.firebasedatabase.app",
     messagingSenderId: "664202538785",
     appId: "1:664202538785:web:3090796665296482839860"
-};
-// if (!firebase.apps.length) {
-//     firebase.initializeApp(firebaseConfig);
-// }
+  };
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 const auth = getAuth(app);
-// const db = firebase.firestore();
+const db = getFirestore(app);
+
 console.log("db")
 console.log(db);
 const AddChat = ({ navigation }) => {
+    // const { id } = route.params;
     const [input, setInput] = useState("");
+    const [chatUrl, setChatUrl] = useState("");
     useLayoutEffect(() => {
         navigation.setOptions({
             title: "Add a new Chat",
@@ -57,16 +56,51 @@ const AddChat = ({ navigation }) => {
 
 
     }
+    // function createChat() {
+    //     console.log(input);
+    //     console.log(chatUrl);
+    //     console.log(id)
+    //     fetch("http://10.0.10.221:5000/user/addChat", {
+    //         method: "POST",
+    //         headers: {
+    //             Accept: "application/json",
+    //             "Content-Type": "application/json",
+    //         },
+    //         body: JSON.stringify({
+    //             chatName: input,
+    //             chatUrl: chatUrl,
+    //             id: id,
+    //         })
+    //     }).then((res) => {
+    //         if (res.status == 200) {
+    //             console.log(res.status);
+    //             return res.json();
+    //         } else if (res.status == 500) {
+    //             alert("Database error")
+    //         } else if (res.status == 400) {
+    //             alert("ChatName Already exists");
+    //         }
+    //     }).then(data => {
+    //         console.log(data.message);
+    //         navigation.goBack();
+    //     })
+
+    // }
     return (
         <View style={styles.container}>
             <Input
                 placeholder="Enter a chat name"
                 value={input}
-                onSubmitEditing={createChat}
                 onChangeText={text => setInput(text)}
                 leftIcon={
                     <Icon name="wechat" size={24} color="black" />
                 } />
+            <Input
+                placeholder='Enter Chat image url'
+                value={chatUrl}
+                onSubmitEditing={createChat}
+                onChangeText={text => setChatUrl(text)}
+            />
             <Button onPress={createChat} title="Create new chat" />
         </View>
     )

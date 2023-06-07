@@ -11,16 +11,20 @@ import { ScrollView } from 'react-native'
 import { Keyboard } from 'react-native'
 import { TouchableWithoutFeedback } from 'react-native'
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, doc, addDoc, serverTimestamp, orderBy, onSnapshot, query, collectionGroup } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import { getAuth } from 'firebase/auth';
+import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { getDocs, onSnapshot, query, orderBy } from "firebase/firestore";
+import { BackgroundImage } from 'react-native-elements/dist/config'
+
 const firebaseConfig = {
     apiKey: "AIzaSyAJ-TrNsUpAt63TYDeCvRTCyzqwL_uz3YM",
     authDomain: "signal-98661.firebaseapp.com",
     projectId: "signal-98661",
     storageBucket: "signal-98661.appspot.com",
+    databaseURL: "https://signal-98661-default-rtdb.asia-southeast1.firebasedatabase.app",
     messagingSenderId: "664202538785",
     appId: "1:664202538785:web:3090796665296482839860"
-};
+  };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -28,28 +32,25 @@ const db = getFirestore(app);
 const Chat = ({ navigation, route }) => {
     const [input, setInnput] = useState('');
     const [message, setMessages] = useState([]);
-
-
-    useLayoutEffect(() => {
+    const [displayNames, setDisplayNames] = useState([]);
+    const { id, senderid, email } = route.params;
+    useEffect(() => {
         navigation.setOptions({
             title: "Chat",
             headerTitleAlign: "left",
             headerTitle: () => (
                 <View style={{
                     flexDirection: "row",
-                    alignItem: "center",
+                    alignItems: "center",
                 }}>
                     <Avatar rounded source={{
-                        uri: message[0]?.data.photoURL ||"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKS9W8AecB8TRNh4yKf1QGSXZXp3_lZYeHlel9tG3kzw&usqp=CAU&ec=48665701"
-                    }}
-                    />
-                    <Text style={{ color: "white", marginLeft: 10, fontWeight: "700" }}>{route.params.chatName}</Text>
+                        uri: message[0]?.data.photoURL || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKS9W8AecB8TRNh4yKf1QGSXZXp3_lZYeHlel9tG3kzw&usqp=CAU&ec=48665701"
+                    }} />
+                    <View>
+                        <Text style={{ color: "white", marginLeft: 10, fontWeight: "700" }}>{route.params.chatName}</Text>
+                        <Text style={{ color: "white", marginLeft: 10, fontWeight: "300", fontSize: 12 }}>{displayNames.join(", ")}</Text>
+                    </View>
                 </View>
-            ),
-            headerLeft: () => (
-                <TouchableOpacity>
-                    <AntDesign name="arrowleft" size={24} color="white" />
-                </TouchableOpacity>
             ),
             headerRight: () => (
                 <View style={{
@@ -66,36 +67,55 @@ const Chat = ({ navigation, route }) => {
                     </TouchableOpacity>
                 </View>
             )
-        })
-    }, [navigation,message])
-    const sendMessage = () => {
-        Keyboard.dismiss();
-        console.log("inside")
+        });
+    }, [displayNames, message, navigation, route.params.chatName]);
 
-        async function addMessageToChat(input, chatId) {
-            try {
-                const messageRef = collection(doc(db, "chats", chatId), "message");
-                const newMessage = {
-                    timestamp: serverTimestamp(),
-                    message: input,
-                    displayName: auth.currentUser.displayName,
-                    email: auth.currentUser.email,
-                    photoURL: auth.currentUser.photoURL
-                };
-                await addDoc(messageRef, newMessage);
-                console.log("Message added successfully");
-            } catch (error) {
-                console.error("Error adding message: ", error);
-            }
+    const sendMessage = async () => {
+        Keyboard.dismiss();
+        // console.log("inside")
+        // console.log(senderid)
+        try {
+            await addDoc(collection(db, 'chats', route.params.id, 'message'), {
+                timestamp: serverTimestamp(),
+                message: input,
+                displayName: auth.currentUser.displayName,
+                email: auth.currentUser.email,
+                photoURL: auth.currentUser.photoURL,
+            });
+
+            setInnput('');
+        } catch (error) {
+            console.error('Error sending message:', error);
         }
-        addMessageToChat(input, route.params.id);
-        setInnput("")
+        // const currentDate = new Date();
+        // const timestamp = currentDate.getTime();
+        // console.log("inside fetch senderId", senderid)
+        // console.log("genrating timestamp", timestamp)
+        // fetch("http://10.0.10.221:5000/user/addMessage", {
+        //     method: "POST",
+        //     headers: {
+        //         Accept: "application/json",
+        //         "Content-Type": "application/json",
+        //     },
+        //     body: JSON.stringify({
+        //         message: input,
+        //         chatid: chatId,
+        //         senderid: senderid,
+        //     //         timestamp: timestamp,
+        //     //     })
+        //     // })
+        // }
+        // addMessageToChat(input, id, senderid);
+        // setInnput("")
     };
 
     useEffect(() => {
+        console.log(displayNames.join(", "));
+    }, [displayNames]);
+    useEffect(() => {
         const q = query(
             collection(db, `chats/${route.params.id}/message`),
-            orderBy('timestamp')
+            orderBy('timestamp', 'desc')
         );
         const unsubscribe = onSnapshot(q, (querySnapshot) => {
             const messages = querySnapshot.docs.map((doc) => ({
@@ -103,15 +123,19 @@ const Chat = ({ navigation, route }) => {
                 data: doc.data(),
             }));
             setMessages(messages);
-            console.log(route.params.id);
-            console.log(messages)
+            const distinctDisplayNames = Array.from(
+                new Set(messages.map((message) => message.data.displayName))
+            ).sort((a, b) => a.localeCompare(b)); // Sort the displayNames in ascending order
+            setDisplayNames(prevDisplayNames => distinctDisplayNames);
         });
+
         return unsubscribe;
-    }, [route.params.id])
+    }, [id]);
+
     // console.log("messages value");
     // console.log(message);
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: "white",paddingTop: "10px" }}>
             <StatusBar style="light" />
             <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -121,7 +145,7 @@ const Chat = ({ navigation, route }) => {
                     <>
                         <ScrollView containerStyle={{ paddingTop: 15 }}>
                             {message.map(({ id, data }) => (
-                                data.email === auth.currentUser.email ? (
+                                auth.currentUser.email === data.email ? (
                                     <View key={id} style={styles.reciver}>
                                         <Avatar
                                             position="absolute"
@@ -164,6 +188,9 @@ const Chat = ({ navigation, route }) => {
                                         <Text style={styles.senderName}>
                                             {data.displayName}
                                         </Text>
+                                        <Text style={styles.senderName}>
+                                            {data.timestamp?.toDate().toLocaleString()}
+                                        </Text>
                                     </View>
                                 )
                             ))}
@@ -195,6 +222,7 @@ export default Chat
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        color: "#a9e4eb"
 
     },
     fotter: {
@@ -202,6 +230,8 @@ const styles = StyleSheet.create({
         alignItems: "center",
         width: "100%",
         padding: 10,
+        position: "fixed",
+        bottom: 0
     },
     textInput: {
         bottom: 0,
