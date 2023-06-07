@@ -7,7 +7,26 @@ import RegisterScreen from './screens/RegisterScreen';
 import HomeScreen from './screens/HomeScreen';
 import AddChat from './screens/AddChat';
 import Chat from './screens/Chat';
-
+import Settings from './screens/Settings';
+import { initializeApp } from 'firebase/app';
+import { getFirestore } from "firebase/firestore";
+import { collection, getDocs, onSnapshot } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import { getDatabase, ref, set, remove, onValue } from "firebase/database";
+import { useEffect } from 'react';
+const firebaseConfig = {
+  apiKey: "AIzaSyAJ-TrNsUpAt63TYDeCvRTCyzqwL_uz3YM",
+  authDomain: "signal-98661.firebaseapp.com",
+  projectId: "signal-98661",
+  storageBucket: "signal-98661.appspot.com",
+  databaseURL: "https://signal-98661-default-rtdb.asia-southeast1.firebasedatabase.app",
+  messagingSenderId: "664202538785",
+  appId: "1:664202538785:web:3090796665296482839860"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const refDB = getDatabase(app);
 
 export default function App() {
   const Stack = createStackNavigator();
@@ -17,6 +36,37 @@ export default function App() {
     headerTintColor: "white",
     // headerTitleAlign: "center"
   };
+
+  useEffect(() => {
+    let sessionTimeout;
+    const startSessionTimeout = () => {
+      sessionTimeout = setTimeout(() => {
+        remove(ref(refDB, "onlineUsers/" + auth.currentUser.displayName))
+          .then(() => {
+            console.log("User data deleted successfully!");
+            alert("Seesion Expired please reload")
+          })
+          .catch((error) => {
+            console.error("Error deleting user data: ", error);
+          });
+      }, 300000);
+      
+    };
+    // Function to reset the session timeout timer
+    const resetSessionTimeout = () => {
+      clearTimeout(sessionTimeout);
+      startSessionTimeout();
+    };
+    // Add event listeners to track user activity and reset session timeout
+    window.addEventListener('mousemove', resetSessionTimeout);
+    window.addEventListener('keydown', resetSessionTimeout);
+    return () => {
+      // Clean up event listeners
+      window.removeEventListener('mousemove', resetSessionTimeout);
+      window.removeEventListener('keydown', resetSessionTimeout);
+    };
+  })
+
   return (
 
     <NavigationContainer>
@@ -26,6 +76,7 @@ export default function App() {
         <Stack.Screen name='HomeScreen' component={HomeScreen} />
         <Stack.Screen name='AddChat' component={AddChat} />
         <Stack.Screen name='Chat' component={Chat} />
+        <Stack.Screen name="Settings" component={Settings} />
       </Stack.Navigator>
     </NavigationContainer>
 

@@ -1,22 +1,21 @@
 import { KeyboardAvoidingView, StatusBar, StyleSheet, View } from 'react-native'
 import React, { useLayoutEffect, useState } from 'react'
 import { Input, Text, Button } from 'react-native-elements';
-// import { getAuth } from 'firebase/auth';
-// import { auth } from '../firebase_connect';
-// import { Alert } from 'react-native';
-// import { initializeApp } from 'firebase/app';
-// import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { Alert } from 'react-native';
+import { initializeApp } from 'firebase/app';
+import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 
-// const firebaseConfig = {
-//     apiKey: "AIzaSyDJ5FgjXvkYSx3DfX_D9pfvyWGi0wvlIHU",
-//     authDomain: "chat-810fd.firebaseapp.com",
-//     projectId: "chat-810fd",
-//     storageBucket: "chat-810fd.appspot.com",
-//     messagingSenderId: "605059293180",
-//     appId: "1:605059293180:web:5f475d409b10f22f5c1c79"
-//   };
-// const app = initializeApp(firebaseConfig);
-// const auth = getAuth(app);
+const firebaseConfig = {
+    apiKey: "AIzaSyAJ-TrNsUpAt63TYDeCvRTCyzqwL_uz3YM",
+    authDomain: "signal-98661.firebaseapp.com",
+    projectId: "signal-98661",
+    storageBucket: "signal-98661.appspot.com",
+    databaseURL: "https://signal-98661-default-rtdb.asia-southeast1.firebasedatabase.app",
+    messagingSenderId: "664202538785",
+    appId: "1:664202538785:web:3090796665296482839860"
+  };
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
 //user full iamge picker :https://stackoverflow.com/questions/70567714/cannot-able-to-upload-user-profile-react-native-firebase
 
@@ -33,44 +32,44 @@ const RegisterScreen = ({ navigation }) => {
     }, [navigation]);
     const register = () => {
 
-        // createUserWithEmailAndPassword(auth, email, password)
-        //     .then((userCredential) => {
-        //         const user = userCredential.user;
-        //         console.log(user);
-        //         updateProfile(user, {
-        //             displayName: name,
-        //             photoURL: imageUrl || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKS9W8AecB8TRNh4yKf1QGSXZXp3_lZYeHlel9tG3kzw&usqp=CAU&ec=48665701"
-        //         }).then(() => {
-        //             console.log("Profile updated successfully.");
-        //         }).catch((error) => {
-        //             console.log("Error updating profile:", error.message);
-        //         });
-        //     })
-        //     .catch((error) => {
-        //         const errorCode = error.code;
-        //         const errorMessage = error.message;
-        //         console.log(errorMessage);
-        //         Alert.alert("Error", error.message);
-        //     });
-
-        //testing for custom database 
-        fetch("http://10.0.10.221:5000/user/register",{
-            method: "POST",
-            headers:{
-                Accept : "application/json",
-                "Content-Type" : "application/json",
-            },
-            body : JSON.stringify({
-                name : name,
-                password : password,
-                imageurl: imageUrl,
-                email : email,
+        createUserWithEmailAndPassword(auth, email, password)
+            .then((userCredential) => {
+                const user = userCredential.user;
+                console.log(user);
+                updateProfile(user, {
+                    displayName: name,
+                    photoURL: imageUrl || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKS9W8AecB8TRNh4yKf1QGSXZXp3_lZYeHlel9tG3kzw&usqp=CAU&ec=48665701"
+                }).then(() => {
+                    console.log("Profile updated successfully.");
+                }).catch((error) => {
+                    console.log("Error updating profile:", error.message);
+                });
             })
-        })
-        .then((res)=>{
-            console.log("This is inside the sucess block");
-            navigation.navigate("Login");
-        })
+            .catch((error) => {
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                console.log(errorMessage);
+                Alert.alert("Error", error.message);
+            });
+
+        // //testing for custom database 
+        // fetch("http://10.0.10.221:5000/user/register",{
+        //     method: "POST",
+        //     headers:{
+        //         Accept : "application/json",
+        //         "Content-Type" : "application/json",
+        //     },
+        //     body : JSON.stringify({
+        //         name : name,
+        //         password : password,
+        //         imageurl: imageUrl,
+        //         email : email,
+        //     })
+        // })
+        // .then((res)=>{
+        //     console.log("This is inside the sucess block");
+        //     navigation.navigate("Login");
+        // })
     }
     return (
         <KeyboardAvoidingView behavior='margin' style={styles.container}>

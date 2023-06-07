@@ -2,15 +2,27 @@ import { StyleSheet, Text, View } from 'react-native'
 import React, { useLayoutEffect, useState } from 'react'
 import { Button, Input } from "react-native-elements"
 import Icon from "react-native-vector-icons/AntDesign";
-// import { initializeApp } from "firebase/app";
-// import { getFirestore } from "firebase/firestore";
-// import { collection, addDoc } from "firebase/firestore";
-// import { getAuth } from "firebase/auth";
+import { initializeApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
+import { collection, addDoc } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+const firebaseConfig = {
+    apiKey: "AIzaSyAJ-TrNsUpAt63TYDeCvRTCyzqwL_uz3YM",
+    authDomain: "signal-98661.firebaseapp.com",
+    projectId: "signal-98661",
+    storageBucket: "signal-98661.appspot.com",
+    databaseURL: "https://signal-98661-default-rtdb.asia-southeast1.firebasedatabase.app",
+    messagingSenderId: "664202538785",
+    appId: "1:664202538785:web:3090796665296482839860"
+  };
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-// console.log("db")
-// console.log(db);
-const AddChat = ({ navigation, route }) => {
-    const { id } = route.params;
+console.log("db")
+console.log(db);
+const AddChat = ({ navigation }) => {
+    // const { id } = route.params;
     const [input, setInput] = useState("");
     const [chatUrl, setChatUrl] = useState("");
     useLayoutEffect(() => {
@@ -19,61 +31,61 @@ const AddChat = ({ navigation, route }) => {
             headerBackTitle: "Chats",
         });
     }, [navigation])
-    // const createChat = async () => {
-    //     console.log("Inside main")
+    const createChat = async () => {
+        console.log("Inside main")
 
-    //     // try {
-    //     //     await db.collection("chats")
-    //     //         .add({
-    //     //             chatName: input,
-    //     //         });
-    //     //     navigation.goBack();
-    //     // } catch (error) {
-    //     //     alert(error);
-    //     // }
-    //     try {
-    //         const docRef = await addDoc(collection(db, "chats"), {
-    //             chatName: input
-    //         });
-    //         console.log("Document written with ID: ", docRef.id);
-    //         navigation.goBack();
-    //     } catch (e) {
-    //         console.error("Error adding document: ", e);
-    //         alert("Error", e)
-    //     }
-
-
-    // }
-    function createChat() {
-        console.log(input);
-        console.log(chatUrl);
-        console.log(id)
-        fetch("http://10.0.10.221:5000/user/addChat", {
-            method: "POST",
-            headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                chatName: input,
-                chatUrl: chatUrl,
-                id: id,
-            })
-        }).then((res) => {
-            if (res.status == 200) {
-                console.log(res.status);
-                return res.json();
-            } else if (res.status == 500) {
-                alert("Database error")
-            } else if (res.status == 400) {
-                alert("ChatName Already exists");
-            }
-        }).then(data => {
-            console.log(data.message);
+        // try {
+        //     await db.collection("chats")
+        //         .add({
+        //             chatName: input,
+        //         });
+        //     navigation.goBack();
+        // } catch (error) {
+        //     alert(error);
+        // }
+        try {
+            const docRef = await addDoc(collection(db, "chats"), {
+                chatName: input
+            });
+            console.log("Document written with ID: ", docRef.id);
             navigation.goBack();
-        })
+        } catch (e) {
+            console.error("Error adding document: ", e);
+            alert("Error", e)
+        }
+
 
     }
+    // function createChat() {
+    //     console.log(input);
+    //     console.log(chatUrl);
+    //     console.log(id)
+    //     fetch("http://10.0.10.221:5000/user/addChat", {
+    //         method: "POST",
+    //         headers: {
+    //             Accept: "application/json",
+    //             "Content-Type": "application/json",
+    //         },
+    //         body: JSON.stringify({
+    //             chatName: input,
+    //             chatUrl: chatUrl,
+    //             id: id,
+    //         })
+    //     }).then((res) => {
+    //         if (res.status == 200) {
+    //             console.log(res.status);
+    //             return res.json();
+    //         } else if (res.status == 500) {
+    //             alert("Database error")
+    //         } else if (res.status == 400) {
+    //             alert("ChatName Already exists");
+    //         }
+    //     }).then(data => {
+    //         console.log(data.message);
+    //         navigation.goBack();
+    //     })
+
+    // }
     return (
         <View style={styles.container}>
             <Input
