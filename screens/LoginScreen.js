@@ -95,7 +95,7 @@ const LoginScreen = ({ navigation }) => {
                     value={password}
                     onChangeText={(text) => setPassword(text)}
                     onSubmitEditing={signIn} />
-
+                <Text style={{fontWeight: "600" ,paddingHorizontal :90}} onPress={()=>navigation.navigate("ForgotPassword")}>  Forgot Password</Text>
             </View>
             <Button containerStyle={styles.button} onPress={signIn} title="Login" />
             <Button containerStyle={styles.button} type='outline' title="Register" onPress={() => navigation.navigate("Register")} />

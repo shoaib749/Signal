@@ -14,6 +14,8 @@ import { collection, getDocs, onSnapshot } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { getDatabase, ref, set, remove, onValue } from "firebase/database";
 import { useEffect } from 'react';
+import ForgotPassword from './screens/ForgotPassword';
+import Profile from './screens/Profile';
 const firebaseConfig = {
   apiKey: "AIzaSyAJ-TrNsUpAt63TYDeCvRTCyzqwL_uz3YM",
   authDomain: "signal-98661.firebaseapp.com",
@@ -44,13 +46,12 @@ export default function App() {
         remove(ref(refDB, "onlineUsers/" + auth.currentUser.displayName))
           .then(() => {
             console.log("User data deleted successfully!");
-            alert("Seesion Expired please reload")
           })
           .catch((error) => {
             console.error("Error deleting user data: ", error);
           });
       }, 300000);
-      
+
     };
     // Function to reset the session timeout timer
     const resetSessionTimeout = () => {
@@ -77,6 +78,8 @@ export default function App() {
         <Stack.Screen name='AddChat' component={AddChat} />
         <Stack.Screen name='Chat' component={Chat} />
         <Stack.Screen name="Settings" component={Settings} />
+        <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
+        <Stack.Screen name="Profile" component={Profile} />
       </Stack.Navigator>
     </NavigationContainer>
 
