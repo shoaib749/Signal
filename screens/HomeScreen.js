@@ -203,12 +203,18 @@ const HomeScreen = ({ navigation }) => {
       chatName,
     });
   };
+  const profile = (displayName,photoURL) =>{
+    navigation.navigate("Profile",{
+      displayName,
+      photoURL
+    })
+  }
   return (
     <SafeAreaView>
       <ScrollView horizontal>
         {users.map(({ displayName, photoURL }) => (
           <CustomOnlineList key={displayName} displayName={displayName} photoURL={photoURL} />
-        ))}
+        ))} 
       </ScrollView>
       <ScrollView>
         {chats.map(({ id, data: { chatName } }) => (
