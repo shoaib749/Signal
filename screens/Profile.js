@@ -7,6 +7,7 @@ const Profile = ({navigation,route}) => {
     <View>
       <Text>Profile</Text>
     </View>
+    
   )
 }
 
