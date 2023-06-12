@@ -1,12 +1,12 @@
 import { KeyboardAvoidingView, StyleSheet, Text, View } from 'react-native'
 import { Button, Input, Image } from "react-native-elements"
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { StatusBar } from 'expo-status-bar'
 import { initializeApp } from 'firebase/app';
 import { AntDesign, SimpleLineIcons, Entypo } from "@expo/vector-icons"
 import { getAuth, updateProfile } from "firebase/auth";
 import { TouchableOpacity } from 'react-native';
-
+import { getDatabase, ref, set, remove, onValue } from "firebase/database";
 const firebaseConfig = {
     apiKey: "AIzaSyAJ-TrNsUpAt63TYDeCvRTCyzqwL_uz3YM",
     authDomain: "signal-98661.firebaseapp.com",
@@ -18,14 +18,31 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const refDB = getDatabase(app);
+
+
 
 const Settings = () => {
     // const [toggleProfile,setToggleProfile] = useState(false);
     const [imageUrl, setImageUrl] = useState(auth.currentUser.photoURL);
     const [bio, setBio] = useState("Hey i am at Ceinsys.....");
-    
-    
-    
+    const userData = {
+        name: auth.currentUser.displayName,
+        photoURL: auth.currentUser.photoURL,
+        email: auth.currentUser.email,
+        bio: bio
+    }
+
+    useEffect(() => {
+        const userRef = ref(refDB, "userProfile/" + auth.currentUser.displayName);
+        const usersListener = onValue(userRef, (snapshot) => {
+            const data = snapshot.val();
+            setBio(data.bio)
+        });
+        return () => {
+            usersListener();
+        }
+    }, []);
     const update = () => {
         const user = auth.currentUser;
         if (imageUrl != null) {
@@ -42,6 +59,14 @@ const Settings = () => {
         }
         if (bio != null) {
             console.log(bio);
+            set(ref(refDB, "userProfile/" + auth.currentUser.displayName), userData)
+                .then(() => {
+                    console.log("User data saved");
+                })
+                .catch((error) => {
+                    console.log("Error in saving data");
+                })
+
             setBio("");
         }
     }
@@ -87,7 +112,7 @@ const Settings = () => {
                 <Input placeholder="Profile Picture Url"
                     type="text"
                     value={imageUrl}
-                    onChangeText={text => setImageUrl(text)}  
+                    onChangeText={text => setImageUrl(text)}
                 />
             </View>
             <Button
@@ -95,6 +120,7 @@ const Settings = () => {
                 title='Update'
                 raised
                 onPress={update} />
+                
         </KeyboardAvoidingView>
     )
 }
@@ -111,7 +137,7 @@ const styles = StyleSheet.create({
     },
     inputContainer: {
         width: 300,
-        marginTop : 20
+        marginTop: 20
     },
     button: {
         width: 200,

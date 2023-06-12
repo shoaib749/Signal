@@ -203,7 +203,7 @@ const HomeScreen = ({ navigation }) => {
       chatName,
     });
   };
-  const profile = (displayName,photoURL) =>{
+  const enterProfile = (displayName,photoURL) =>{
     navigation.navigate("Profile",{
       displayName,
       photoURL
@@ -213,7 +213,7 @@ const HomeScreen = ({ navigation }) => {
     <SafeAreaView>
       <ScrollView horizontal>
         {users.map(({ displayName, photoURL }) => (
-          <CustomOnlineList key={displayName} displayName={displayName} photoURL={photoURL} />
+          <CustomOnlineList key={displayName} displayName={displayName} photoURL={photoURL} profile={enterProfile} />
         ))} 
       </ScrollView>
       <ScrollView>
