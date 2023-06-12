@@ -16,6 +16,7 @@ import { getDatabase, ref, set, remove, onValue } from "firebase/database";
 import { useEffect } from 'react';
 import ForgotPassword from './screens/ForgotPassword';
 import Profile from './screens/Profile';
+import DM from './screens/DM';
 const firebaseConfig = {
   apiKey: "AIzaSyAJ-TrNsUpAt63TYDeCvRTCyzqwL_uz3YM",
   authDomain: "signal-98661.firebaseapp.com",
@@ -80,6 +81,7 @@ export default function App() {
         <Stack.Screen name="Settings" component={Settings} />
         <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
         <Stack.Screen name="Profile" component={Profile} />
+        <Stack.Screen name="DM" component={DM} />
       </Stack.Navigator>
     </NavigationContainer>
 

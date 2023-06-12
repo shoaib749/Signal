@@ -1,21 +1,20 @@
 import { StyleSheet, Text, View, TextInput } from 'react-native'
-import React, { useLayoutEffect, useState, useEffect } from 'react'
+import React from 'react'
 import { Avatar } from 'react-native-elements'
+import { useState, useEffect } from 'react'
 import { TouchableOpacity } from 'react-native'
-import { AntDesign, FontAwesome, Ionicons } from "@expo/vector-icons"
 import { SafeAreaView } from 'react-native'
-import { StatusBar } from 'react-native'
 import { KeyboardAvoidingView } from 'react-native'
+import { getAuth, updateProfile } from "firebase/auth";
 import { Platform } from 'react-native'
 import { ScrollView } from 'react-native'
+import { initializeApp } from 'firebase/app';
 import { Keyboard } from 'react-native'
 import { TouchableWithoutFeedback } from 'react-native'
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { getDocs, onSnapshot, query, orderBy } from "firebase/firestore";
-import { BackgroundImage } from 'react-native-elements/dist/config'
-
+import { StatusBar } from 'react-native'
+import { getDatabase, ref, set, remove, onValue, serverTimestamp } from "firebase/database";
+import { AntDesign, FontAwesome, Ionicons } from "@expo/vector-icons"
+import { Timestamp } from 'firebase/firestore'
 const firebaseConfig = {
     apiKey: "AIzaSyAJ-TrNsUpAt63TYDeCvRTCyzqwL_uz3YM",
     authDomain: "signal-98661.firebaseapp.com",
@@ -27,13 +26,52 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
-
-const Chat = ({ navigation, route }) => {
-    const [input, setInnput] = useState('');
+const refDB = getDatabase(app);
+const DM = ({ navigation, route }) => {
+    const [input, setInput] = useState('');
     const [message, setMessages] = useState([]);
-    const [displayNames, setDisplayNames] = useState([]);
-    const { id, senderid, email } = route.params;
+    const { displayName, photoURL, chatName } = route.params;
+    const messageData = {
+        timestamp: serverTimestamp(),
+        message: input,
+        displayName: auth.currentUser.displayName,
+        email: auth.currentUser.email,
+        photoURL: auth.currentUser.photoURL
+    }
+    function generateRandomString(length) {
+        let result = '';
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        for (let i = 0; i < length; i++) {
+            const randomIndex = Math.floor(Math.random() * characters.length);
+            result += characters.charAt(randomIndex);
+        }
+        return result;
+    }
+    useEffect(()=>{
+        const userRef = ref(refDB,"chats/"+chatName);
+        const usersListener = onValue(userRef,(snapshot)=>{
+            const data = snapshot.val();
+            setMessages(data.message)
+        })
+        return () =>{
+            usersListener();
+        }
+    })
+    const sendMessage = async () => {
+        Keyboard.dismiss();
+        console.log("ChatName:", chatName);
+
+        set(ref(refDB, "chats/" + chatName + "/" + generateRandomString(32)), messageData)
+            .then(() => {
+                console.log("Chat send");
+            })
+            .catch((error) => {
+                console.log("Error in saving message")
+            })
+    }
+    useEffect(()=>{
+
+    })
     useEffect(() => {
         navigation.setOptions({
             title: "Chat",
@@ -44,11 +82,10 @@ const Chat = ({ navigation, route }) => {
                     alignItems: "center",
                 }}>
                     <Avatar rounded source={{
-                        uri: message[0]?.data.photoURL || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKS9W8AecB8TRNh4yKf1QGSXZXp3_lZYeHlel9tG3kzw&usqp=CAU&ec=48665701"
+                        uri: photoURL || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKS9W8AecB8TRNh4yKf1QGSXZXp3_lZYeHlel9tG3kzw&usqp=CAU&ec=48665701"
                     }} />
                     <View>
-                        <Text style={{ color: "white", marginLeft: 10, fontWeight: "700" }}>{route.params.chatName}</Text>
-                        <Text style={{ color: "white", marginLeft: 10, fontWeight: "300", fontSize: 12 }}>{displayNames.join(", ")}</Text>
+                        <Text style={{ color: "white", marginLeft: 10, fontWeight: "700" }}>{displayName}</Text>
                     </View>
                 </View>
             ),
@@ -68,72 +105,7 @@ const Chat = ({ navigation, route }) => {
                 </View>
             )
         });
-    }, [displayNames, message, navigation, route.params.chatName]);
-
-    const sendMessage = async () => {
-        Keyboard.dismiss();
-        // console.log("inside")
-        // console.log(senderid)
-        try {
-            await addDoc(collection(db, 'chats', route.params.id, 'message'), {
-                timestamp: serverTimestamp(),
-                message: input,
-                displayName: auth.currentUser.displayName,
-                email: auth.currentUser.email,
-                photoURL: auth.currentUser.photoURL,
-            });
-
-            setInnput('');
-        } catch (error) {
-            console.error('Error sending message:', error);
-        }
-        // const currentDate = new Date();
-        // const timestamp = currentDate.getTime();
-        // console.log("inside fetch senderId", senderid)
-        // console.log("genrating timestamp", timestamp)
-        // fetch("http://10.0.10.221:5000/user/addMessage", {
-        //     method: "POST",
-        //     headers: {
-        //         Accept: "application/json",
-        //         "Content-Type": "application/json",
-        //     },
-        //     body: JSON.stringify({
-        //         message: input,
-        //         chatid: chatId,
-        //         senderid: senderid,
-        //     //         timestamp: timestamp,
-        //     //     })
-        //     // })
-        // }
-        // addMessageToChat(input, id, senderid);
-        // setInnput("")
-    };
-
-    useEffect(() => {
-        console.log(displayNames.join(", "));
-    }, [displayNames]);
-    useEffect(() => {
-        const q = query(
-            collection(db, `chats/${route.params.id}/message`),
-            orderBy('timestamp', 'desc')
-        );
-        const unsubscribe = onSnapshot(q, (querySnapshot) => {
-            const messages = querySnapshot.docs.map((doc) => ({
-                id: doc.id,
-                data: doc.data(),
-            }));
-            setMessages(messages);
-            const distinctDisplayNames = Array.from(
-                new Set(messages.map((message) => message.data.displayName))
-            ).sort((a, b) => a.localeCompare(b)); // Sort the displayNames in ascending order
-            setDisplayNames(prevDisplayNames => distinctDisplayNames);
-        });
-
-        return unsubscribe;
-    }, [id]);
-
-    // console.log("messages value");
-    // console.log(message);
+    }, []);
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: "white", paddingTop: "10px" }}>
             <StatusBar style="light" />
@@ -143,7 +115,7 @@ const Chat = ({ navigation, route }) => {
                 keyboardVerticalOffset={90}>
                 <TouchableWithoutFeedback>
                     <>
-                        <ScrollView containerStyle={{ paddingTop: 15 }}>
+                        {/* <ScrollView containerStyle={{ paddingTop: 15 }}>
                             {message.map(({ id, data }) => (
                                 auth.currentUser.email === data.email ? (
                                     <View key={id} style={styles.reciver}>
@@ -194,12 +166,12 @@ const Chat = ({ navigation, route }) => {
                                     </View>
                                 )
                             ))}
-                        </ScrollView>
+                        </ScrollView> */}
                         <View style={styles.fotter}>
                             {/* fotter */}
                             <TextInput
                                 value={input}
-                                onChangeText={text => setInnput(text)}
+                                onChangeText={text => setInput(text)}
                                 placeholder="Signal Message"
                                 style={styles.textInput}
                                 onSubmitEditing={sendMessage}
@@ -217,7 +189,7 @@ const Chat = ({ navigation, route }) => {
     )
 }
 
-export default Chat
+export default DM
 
 const styles = StyleSheet.create({
     container: {

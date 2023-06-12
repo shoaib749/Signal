@@ -1,6 +1,6 @@
 import { KeyboardAvoidingView, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
-import { Image ,Button } from 'react-native-elements';
+import { Image, Button } from 'react-native-elements';
 import { useState } from 'react';
 import { StatusBar } from 'expo-status-bar'
 import { initializeApp } from 'firebase/app';
@@ -24,7 +24,10 @@ const Profile = ({ navigation, route }) => {
   const { displayName, photoURL } = route.params;
   const [bio, setBio] = useState("");
   const [email, setEmail] = useState("");
-
+  const chatName = auth.currentUser.displayName + displayName;
+  const data = {
+    chatName: chatName
+  }
   useEffect(() => {
     const userRef = ref(refDB, "userProfile/" + displayName)
     const usersListener = onValue(userRef, (snapshot) => {
@@ -36,6 +39,27 @@ const Profile = ({ navigation, route }) => {
       usersListener();
     }
   })
+  const createMessage = () => {
+    set(ref(refDB, "userProfile/" + auth.currentUser.displayName + "/" + "chats/" + chatName + "/"), data)
+      .then(() => {
+        console.log("Succes in creater");
+      })
+      .catch((error) => {
+        console.log("Error", error);
+      })
+    set(ref(refDB, "userProfile/" + displayName + "/" + "chats/" + chatName + "/"), data)
+      .then(() => {
+        console.log("Succes in second creater");
+      })
+      .catch((error) => {
+        console.log("Error", error);
+      })
+    navigation.navigate("DM", {
+      displayName: displayName,
+      photoURL: photoURL,
+      chatName: chatName
+    })
+  }
   return (
     <KeyboardAvoidingView behavior='margin' style={styles.container}>
       <StatusBar style='ligth' />
@@ -68,8 +92,9 @@ const Profile = ({ navigation, route }) => {
       <Button
         containerStyle={styles.button}
         title='Message'
-        raised />
-        <Text>Kal se suru hoga personal message!!!!</Text>
+        raised
+        onPress={createMessage} />
+      <Text>Kal se suru hoga personal message!!!!</Text>
 
     </KeyboardAvoidingView>
 
