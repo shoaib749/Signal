@@ -47,20 +47,20 @@ const DM = ({ navigation, route }) => {
         }
         return result;
     }
-    useEffect(()=>{
-        const userRef = ref(refDB,"chats/"+chatName);
-        const usersListener = onValue(userRef,(snapshot)=>{
+    useEffect(() => {
+        const userRef = ref(refDB, "chats/" + chatName);
+        const usersListener = onValue(userRef, (snapshot) => {
             const data = snapshot.val();
-            setMessages(data.message)
+            setMessages(data)
+            // console.log(message)
         })
-        return () =>{
+        return () => {
             usersListener();
         }
     })
     const sendMessage = async () => {
         Keyboard.dismiss();
         console.log("ChatName:", chatName);
-
         set(ref(refDB, "chats/" + chatName + "/" + generateRandomString(32)), messageData)
             .then(() => {
                 console.log("Chat send");
@@ -68,10 +68,11 @@ const DM = ({ navigation, route }) => {
             .catch((error) => {
                 console.log("Error in saving message")
             })
+        setInput("")
     }
-    useEffect(()=>{
+    // useEffect(() => {
 
-    })
+    // })
     useEffect(() => {
         navigation.setOptions({
             title: "Chat",
