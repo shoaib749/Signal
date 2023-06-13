@@ -14,7 +14,6 @@ import { TouchableWithoutFeedback } from 'react-native'
 import { StatusBar } from 'react-native'
 import { getDatabase, ref, set, remove, onValue, serverTimestamp } from "firebase/database";
 import { AntDesign, FontAwesome, Ionicons } from "@expo/vector-icons"
-import { Timestamp } from 'firebase/firestore'
 const firebaseConfig = {
     apiKey: "AIzaSyAJ-TrNsUpAt63TYDeCvRTCyzqwL_uz3YM",
     authDomain: "signal-98661.firebaseapp.com",
@@ -47,21 +46,52 @@ const DM = ({ navigation, route }) => {
         }
         return result;
     }
+    // useEffect(() => {
+    //     const userRef = ref(refDB, "chats/" + chatName);
+    //     const usersListener = onValue(userRef, (snapshot) => {
+    //         const data = snapshot.val();
+
+    //         if (data) {
+    //             const messageArray = Object.keys(data).map((key) => ({
+    //                 id: key,
+    //                 data: data[key],
+    //             }));
+    //             setMessages(messageArray);
+    //         } else {
+    //             setMessages([]);
+    //         }
+    //     })
+    //     return () => {
+    //         usersListener();
+    //     }
+    // }, [chatName])
     useEffect(() => {
         const userRef = ref(refDB, "chats/" + chatName);
         const usersListener = onValue(userRef, (snapshot) => {
             const data = snapshot.val();
-            setMessages(data)
-            // console.log(message)
-        })
+
+            if (data) {
+                const messageArray = Object.keys(data)
+                    .map((key) => ({
+                        id: key,
+                        data: data[key],
+                    }))
+                    .sort((a, b) => b.data.timestamp - a.data.timestamp); // Sort messages by timestamp in descending order
+                setMessages(messageArray);
+            } else {
+                setMessages([]);
+            }
+        });
+
         return () => {
             usersListener();
-        }
-    })
+        };
+    }, [chatName]);
     const sendMessage = async () => {
         Keyboard.dismiss();
+        const timestamp = new Date().getTime();
         console.log("ChatName:", chatName);
-        set(ref(refDB, "chats/" + chatName + "/" + generateRandomString(32)), messageData)
+        set(ref(refDB, "chats/" + chatName + "/" + timestamp), messageData)
             .then(() => {
                 console.log("Chat send");
             })
@@ -70,9 +100,6 @@ const DM = ({ navigation, route }) => {
             })
         setInput("")
     }
-    // useEffect(() => {
-
-    // })
     useEffect(() => {
         navigation.setOptions({
             title: "Chat",
@@ -116,7 +143,7 @@ const DM = ({ navigation, route }) => {
                 keyboardVerticalOffset={90}>
                 <TouchableWithoutFeedback>
                     <>
-                        {/* <ScrollView containerStyle={{ paddingTop: 15 }}>
+                        <ScrollView containerStyle={{ paddingTop: 15 }}>
                             {message.map(({ id, data }) => (
                                 auth.currentUser.email === data.email ? (
                                     <View key={id} style={styles.reciver}>
@@ -162,12 +189,12 @@ const DM = ({ navigation, route }) => {
                                             {data.displayName}
                                         </Text>
                                         <Text style={styles.senderName}>
-                                            {data.timestamp?.toDate().toLocaleString()}
+                                            {/* {data.timestamp?.toDate().toLocaleString()} */}
                                         </Text>
                                     </View>
                                 )
                             ))}
-                        </ScrollView> */}
+                        </ScrollView>
                         <View style={styles.fotter}>
                             {/* fotter */}
                             <TextInput
