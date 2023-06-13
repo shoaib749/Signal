@@ -3,6 +3,7 @@ import React from 'react'
 import { Avatar } from 'react-native-elements'
 import { useState, useEffect } from 'react'
 import { TouchableOpacity } from 'react-native'
+import moment from 'moment';
 import { SafeAreaView } from 'react-native'
 import { KeyboardAvoidingView } from 'react-native'
 import { getAuth, updateProfile } from "firebase/auth";
@@ -77,6 +78,14 @@ const DM = ({ navigation, route }) => {
                         data: data[key],
                     }))
                     .sort((a, b) => b.data.timestamp - a.data.timestamp); // Sort messages by timestamp in descending order
+
+                // Update the timestamp to a readable date string
+                messageArray.forEach((message) => {
+                    const timestamp = message.data.timestamp;
+                    const formattedDate = new Date(timestamp).toLocaleString();
+                    message.data.timestamp = formattedDate;
+                });
+
                 setMessages(messageArray);
             } else {
                 setMessages([]);
@@ -87,6 +96,8 @@ const DM = ({ navigation, route }) => {
             usersListener();
         };
     }, [chatName]);
+
+
     const sendMessage = async () => {
         Keyboard.dismiss();
         const timestamp = new Date().getTime();
@@ -189,7 +200,7 @@ const DM = ({ navigation, route }) => {
                                             {data.displayName}
                                         </Text>
                                         <Text style={styles.senderName}>
-                                            {/* {data.timestamp?.toDate().toLocaleString()} */}
+                                            {data.timestamp ? moment(data.timestamp).format('MMMM Do YYYY, h:mm:ss a') : ''}
                                         </Text>
                                     </View>
                                 )

@@ -134,7 +134,7 @@ const Profile = ({ navigation, route }) => {
         title='Message'
         raised
         onPress={createMessage} />
-      <Text>Kal se suru hoga personal message!!!!</Text>
+      
 
     </KeyboardAvoidingView>
 
