@@ -23,10 +23,14 @@ const refDB = getDatabase(app);
 const Profile = ({ navigation, route }) => {
   const { displayName, photoURL } = route.params;
   const [bio, setBio] = useState("");
+  const [nameList, setNameList] = useState([]);
   const [email, setEmail] = useState("");
-  const chatName = auth.currentUser.displayName + displayName;
+  const [chatName, setChatName] = useState(auth.currentUser.displayName + "0" + displayName);
   const data = {
     chatName: chatName
+  }
+  const test = {
+
   }
   useEffect(() => {
     const userRef = ref(refDB, "userProfile/" + displayName)
@@ -35,29 +39,65 @@ const Profile = ({ navigation, route }) => {
       setBio(data.bio);
       setEmail(data.email);
     })
+    const chatRef = ref(refDB, "chats/");
+    const chatListner = onValue(chatRef, (snapshot) => {
+      const data = snapshot.val();
+      setNameList(Object.keys(data));
+    })
     return () => {
       usersListener();
+      chatListner();
     }
-  })
+  }, [displayName, nameList])
   const createMessage = () => {
-    set(ref(refDB, "userProfile/" + auth.currentUser.displayName + "/" + "chats/" + chatName + "/"), data)
-      .then(() => {
-        console.log("Succes in creater");
-      })
-      .catch((error) => {
-        console.log("Error", error);
-      })
-    set(ref(refDB, "userProfile/" + displayName + "/" + "chats/" + chatName + "/"), data)
-      .then(() => {
-        console.log("Succes in second creater");
-      })
-      .catch((error) => {
-        console.log("Error", error);
-      })
+    const secondChatName = displayName + "0" + auth.currentUser.displayName;
+    let chatExists = false;
+    let updatedChatName = chatName;
+    console.log(nameList)
+    for (const name of nameList) {
+      if (name === chatName) {
+        console.log("Inside the first if")
+        chatExists = true;
+      }
+      if (name === secondChatName) {
+        chatExists = true;
+        console.log("Inside the second if")
+        updatedChatName = secondChatName;
+        // setChatName(secondChatName);
+        console.log("Second Chat Name:", updatedChatName);
+      }
+    }
+
+    if (!chatExists) {
+      set(ref(refDB, "userProfile/" + auth.currentUser.displayName + "/" + "chats/" + chatName + "/"), data)
+        .then(() => {
+          console.log("Succes in creater");
+        })
+        .catch((error) => {
+          console.log("Error", error);
+        })
+      set(ref(refDB, "userProfile/" + displayName + "/" + "chats/" + chatName + "/"), data)
+        .then(() => {
+          console.log("Succes in second creater");
+        })
+        .catch((error) => {
+          console.log("Error", error);
+        })
+      set(ref(refDB, "chats/" + chatName), test)
+        .then(() => {
+          console.log("New Chat is added to the chats table")
+        })
+        .catch((error) => {
+          console.log("Failed with error:", error);
+        })
+    } else {
+      console.log("Already chat is created")
+      console.log("inside the else block ", updatedChatName)
+    }
     navigation.navigate("DM", {
       displayName: displayName,
       photoURL: photoURL,
-      chatName: chatName
+      chatName: updatedChatName
     })
   }
   return (
@@ -94,7 +134,7 @@ const Profile = ({ navigation, route }) => {
         title='Message'
         raised
         onPress={createMessage} />
-      <Text>Kal se suru hoga personal message!!!!</Text>
+      
 
     </KeyboardAvoidingView>
 

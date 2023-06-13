@@ -3,6 +3,7 @@ import React from 'react'
 import { Avatar } from 'react-native-elements'
 import { useState, useEffect } from 'react'
 import { TouchableOpacity } from 'react-native'
+import moment from 'moment';
 import { SafeAreaView } from 'react-native'
 import { KeyboardAvoidingView } from 'react-native'
 import { getAuth, updateProfile } from "firebase/auth";
@@ -14,7 +15,6 @@ import { TouchableWithoutFeedback } from 'react-native'
 import { StatusBar } from 'react-native'
 import { getDatabase, ref, set, remove, onValue, serverTimestamp } from "firebase/database";
 import { AntDesign, FontAwesome, Ionicons } from "@expo/vector-icons"
-import { Timestamp } from 'firebase/firestore'
 const firebaseConfig = {
     apiKey: "AIzaSyAJ-TrNsUpAt63TYDeCvRTCyzqwL_uz3YM",
     authDomain: "signal-98661.firebaseapp.com",
@@ -47,31 +47,70 @@ const DM = ({ navigation, route }) => {
         }
         return result;
     }
-    useEffect(()=>{
-        const userRef = ref(refDB,"chats/"+chatName);
-        const usersListener = onValue(userRef,(snapshot)=>{
+    // useEffect(() => {
+    //     const userRef = ref(refDB, "chats/" + chatName);
+    //     const usersListener = onValue(userRef, (snapshot) => {
+    //         const data = snapshot.val();
+
+    //         if (data) {
+    //             const messageArray = Object.keys(data).map((key) => ({
+    //                 id: key,
+    //                 data: data[key],
+    //             }));
+    //             setMessages(messageArray);
+    //         } else {
+    //             setMessages([]);
+    //         }
+    //     })
+    //     return () => {
+    //         usersListener();
+    //     }
+    // }, [chatName])
+    useEffect(() => {
+        const userRef = ref(refDB, "chats/" + chatName);
+        const usersListener = onValue(userRef, (snapshot) => {
             const data = snapshot.val();
-            setMessages(data.message)
-        })
-        return () =>{
+
+            if (data) {
+                const messageArray = Object.keys(data)
+                    .map((key) => ({
+                        id: key,
+                        data: data[key],
+                    }))
+                    .sort((a, b) => b.data.timestamp - a.data.timestamp); // Sort messages by timestamp in descending order
+
+                // Update the timestamp to a readable date string
+                messageArray.forEach((message) => {
+                    const timestamp = message.data.timestamp;
+                    const formattedDate = new Date(timestamp).toLocaleString();
+                    message.data.timestamp = formattedDate;
+                });
+
+                setMessages(messageArray);
+            } else {
+                setMessages([]);
+            }
+        });
+
+        return () => {
             usersListener();
-        }
-    })
+        };
+    }, [chatName]);
+
+
     const sendMessage = async () => {
         Keyboard.dismiss();
+        const timestamp = new Date().getTime();
         console.log("ChatName:", chatName);
-
-        set(ref(refDB, "chats/" + chatName + "/" + generateRandomString(32)), messageData)
+        set(ref(refDB, "chats/" + chatName + "/" + timestamp), messageData)
             .then(() => {
                 console.log("Chat send");
             })
             .catch((error) => {
                 console.log("Error in saving message")
             })
+        setInput("")
     }
-    useEffect(()=>{
-
-    })
     useEffect(() => {
         navigation.setOptions({
             title: "Chat",
@@ -115,7 +154,7 @@ const DM = ({ navigation, route }) => {
                 keyboardVerticalOffset={90}>
                 <TouchableWithoutFeedback>
                     <>
-                        {/* <ScrollView containerStyle={{ paddingTop: 15 }}>
+                        <ScrollView containerStyle={{ paddingTop: 15 }}>
                             {message.map(({ id, data }) => (
                                 auth.currentUser.email === data.email ? (
                                     <View key={id} style={styles.reciver}>
@@ -161,12 +200,12 @@ const DM = ({ navigation, route }) => {
                                             {data.displayName}
                                         </Text>
                                         <Text style={styles.senderName}>
-                                            {data.timestamp?.toDate().toLocaleString()}
+                                            {data.timestamp ? moment(data.timestamp).format('MMMM Do YYYY, h:mm:ss a') : ''}
                                         </Text>
                                     </View>
                                 )
                             ))}
-                        </ScrollView> */}
+                        </ScrollView>
                         <View style={styles.fotter}>
                             {/* fotter */}
                             <TextInput
