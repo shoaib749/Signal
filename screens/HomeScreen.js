@@ -3,7 +3,7 @@ import React, { useLayoutEffect, useState, useEffect } from 'react'
 import CustomListItem from '../components/CustomListItem'
 import { Avatar } from 'react-native-elements'
 import { TouchableOpacity } from 'react-native';
-import { AntDesign, SimpleLineIcons, Entypo } from "@expo/vector-icons"
+import { AntDesign, FontAwesome, Entypo } from "@expo/vector-icons"
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from "firebase/firestore";
 import { collection, getDocs, onSnapshot } from "firebase/firestore";
@@ -27,6 +27,7 @@ const refDB = getDatabase(app);
 const HomeScreen = ({ navigation }) => {
   const [eyeVisible, setEyeVisible] = useState(true);
   const [users, setUsers] = useState([]);
+  const [chats, setChats] = useState([]);
   const { displayName, photoURL } = auth.currentUser;
   const userData = {
     name: displayName,
@@ -87,7 +88,7 @@ const HomeScreen = ({ navigation }) => {
   // const senderid = id;
   // console.log("sender id", senderid);
   console.log("back")
-  const [chats, setChats] = useState([]);
+
   const signOut = () => {
     auth.signOut().then(() => {
       navigation.replace("Login");
@@ -184,7 +185,7 @@ const HomeScreen = ({ navigation }) => {
             )}
           </TouchableOpacity>
           <TouchableOpacity activeOpacity={0.5}>
-            <AntDesign name="camerao" size={24} color="black" />
+            <FontAwesome name="send-o" size={24} color="black" onPress={() => navigation.navigate("DMHome")} />
           </TouchableOpacity>
           <TouchableOpacity activeOpacity={0.5} onPress={() => navigation.navigate("AddChat")}>
             <AntDesign name="addusergroup" size={24} color="black" />
@@ -203,8 +204,8 @@ const HomeScreen = ({ navigation }) => {
       chatName,
     });
   };
-  const enterProfile = (displayName,photoURL) =>{
-    navigation.navigate("Profile",{
+  const enterProfile = (displayName, photoURL) => {
+    navigation.navigate("Profile", {
       displayName,
       photoURL
     })
@@ -214,7 +215,7 @@ const HomeScreen = ({ navigation }) => {
       <ScrollView horizontal>
         {users.map(({ displayName, photoURL }) => (
           <CustomOnlineList key={displayName} displayName={displayName} photoURL={photoURL} profile={enterProfile} />
-        ))} 
+        ))}
       </ScrollView>
       <ScrollView>
         {chats.map(({ id, data: { chatName } }) => (

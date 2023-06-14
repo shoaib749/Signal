@@ -97,7 +97,7 @@ const DM = ({ navigation, route }) => {
         };
     }, [chatName]);
 
-
+    
     const sendMessage = async () => {
         Keyboard.dismiss();
         const timestamp = new Date().getTime();

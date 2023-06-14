@@ -27,7 +27,14 @@ const Profile = ({ navigation, route }) => {
   const [email, setEmail] = useState("");
   const [chatName, setChatName] = useState(auth.currentUser.displayName + "0" + displayName);
   const data = {
-    chatName: chatName
+    chatName: chatName,
+    chatPerson : displayName,
+    chatPersonPhotURL : photoURL
+  }
+  const data1 = {
+    chatName: chatName,
+    chatPerson : auth.currentUser.displayName,
+    chatPersonPhotURL : auth.currentUser.photoURL
   }
   const test = {
 
@@ -76,7 +83,7 @@ const Profile = ({ navigation, route }) => {
         .catch((error) => {
           console.log("Error", error);
         })
-      set(ref(refDB, "userProfile/" + displayName + "/" + "chats/" + chatName + "/"), data)
+      set(ref(refDB, "userProfile/" + displayName + "/" + "chats/" + chatName + "/"), data1)
         .then(() => {
           console.log("Succes in second creater");
         })
