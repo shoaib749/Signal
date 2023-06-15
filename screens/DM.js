@@ -31,6 +31,7 @@ const DM = ({ navigation, route }) => {
     const [input, setInput] = useState('');
     const [message, setMessages] = useState([]);
     const { displayName, photoURL, chatName } = route.params;
+    console.log("route data:",displayName + " " + photoURL + " " + chatName)
     const messageData = {
         timestamp: serverTimestamp(),
         message: input,
