@@ -1,10 +1,23 @@
 import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { ListItem, Avatar } from 'react-native-elements'
-
-const CustomUserList = ({ displayName, photoURL, bio }) => {
-    return (
-        <ListItem onPress={()=>userData()} bottomDivider>
+import { initializeApp } from 'firebase/app';
+import { getDatabase, ref, set, remove, onValue } from "firebase/database";
+import { getAuth, updateProfile } from "firebase/auth";
+const firebaseConfig = {
+    apiKey: "AIzaSyAJ-TrNsUpAt63TYDeCvRTCyzqwL_uz3YM",
+    authDomain: "signal-98661.firebaseapp.com",
+    projectId: "signal-98661",
+    storageBucket: "signal-98661.appspot.com",
+    databaseURL: "https://signal-98661-default-rtdb.asia-southeast1.firebasedatabase.app",
+    messagingSenderId: "664202538785",
+    appId: "1:664202538785:web:3090796665296482839860"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const refDB = getDatabase(app);
+const CustomUserList = ({ displayName, photoURL, bio, userData }) => {    return (
+        <ListItem onPress={() => userData(displayName, photoURL)} key={displayName} bottomDivider>
             <Avatar
                 rounded
                 source={{
@@ -20,7 +33,7 @@ const CustomUserList = ({ displayName, photoURL, bio }) => {
                 <ListItem.Subtitle numberOfLines={1} ellipsizeMode="tail" >
                     <View style={{ flexDirection: "row" }}>
                         <Text style={{ fontWeight: "900" }} >
-                            {bio || "This is a test subtitle"} 
+                            {bio || "This is a test subtitle"}
                         </Text>
                     </View>
                 </ListItem.Subtitle>
@@ -29,6 +42,6 @@ const CustomUserList = ({ displayName, photoURL, bio }) => {
     )
 }
 
-export default CustomUserList
+export default CustomUserList;
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({});

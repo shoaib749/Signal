@@ -23,6 +23,8 @@ const db = getFirestore(app);
 const refDB = getDatabase(app);
 const AddDM = ({ navigation }) => {
     const [users, setUsers] = useState([]);
+    const [nameList, setNameList] = useState([]);
+    const [chatName, setChatName] = useState('');
     useLayoutEffect(() => {
         navigation.setOptions({
             title: "Add people",
@@ -51,13 +53,84 @@ const AddDM = ({ navigation }) => {
             usersListners();
         };
     }, [])
-    const userData = (displayName, photoURL, bio) => {
+    useEffect(() => {
+        
+        const chatRef = ref(refDB, "chats/");
+        const chatListener = onValue(chatRef, (snapshot) => {
+            const data = snapshot.val();
+            setNameList(Object.keys(data));
+        });
+
+        return () => {
+            chatListener();
+        }
+    }, []);
+    const userData = (displayName, photoURL) => {
+        const init = auth.currentUser.displayName + "0" + displayName;
+        setChatName(init)
+        console.log("bolte to bula leya ha ")
+        
+        const data = {
+            chatName: chatName,
+            chatPerson: displayName,
+            chatPersonPhotURL: photoURL
+        }
+        const data1 = {
+            chatName: chatName,
+            chatPerson: auth.currentUser.displayName,
+            chatPersonPhotURL: auth.currentUser.photoURL
+        }
+        const test = {}
+        const secondChatName = displayName + "0" + auth.currentUser.displayName;
+        console.log("Second Name :", secondChatName)
+        let chatExists = false;
+        let updatedChatName = chatName;
+        console.log(nameList);
+        for (const name of nameList) {
+            if (name === chatName) {
+                console.log("Inside the first if");
+                chatExists = true;
+            }
+            if (name === secondChatName) {
+                chatExists = true;
+                console.log("Inside the second if");
+                updatedChatName = secondChatName;
+                console.log("Second Chat Name:", updatedChatName);
+            }
+        }
+        if (!chatExists) {
+            set(ref(refDB, "userProfile/" + auth.currentUser.displayName + "/" + "chats/" + chatName + "/"), data)
+                .then(() => {
+                    console.log("Success in creator");
+                })
+                .catch((error) => {
+                    console.log("Error", error);
+                });
+            set(ref(refDB, "userProfile/" + displayName + "/" + "chats/" + chatName + "/"), data1)
+                .then(() => {
+                    console.log("Success in second creator");
+                })
+                .catch((error) => {
+                    console.log("Error", error);
+                });
+            set(ref(refDB, "chats/" + chatName), test)
+                .then(() => {
+                    console.log("New Chat is added to the chats table:", chatName);
+                })
+                .catch((error) => {
+                    console.log("Failed with error:", error);
+                });
+        } else {
+            console.log("Chat already exists");
+            console.log("Inside the else block ", updatedChatName);
+        }
+        console.log("final chatName", updatedChatName);
         navigation.navigate("DM", {
-            displayName,
-            photoURL,
-            bio
-        })
-    }
+            displayName: displayName,
+            photoURL: photoURL,
+            chatName: updatedChatName
+        });
+    };
     return (
         <SafeAreaView>
             <ScrollView >
